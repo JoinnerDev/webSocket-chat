@@ -3,6 +3,7 @@ library websocket_chat;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:websocket_chat/models/chat_message_model.dart';
+import 'package:websocket_chat/tree_dots_animated.dart';
 
 class WebsocketChat extends StatelessWidget {
   const WebsocketChat({
@@ -69,8 +70,12 @@ class WebsocketChat extends StatelessWidget {
           width: MediaQuery.of(context).size.width,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _chat(context),
+              if (messages.isNotEmpty && messages.last.isMe) ...[
+                _botWriting(),
+              ],
               _inputMessage(context)
             ],
           )
@@ -78,9 +83,41 @@ class WebsocketChat extends StatelessWidget {
     );
   }
 
+  Widget _botWriting() {
+    return const Padding(
+      padding: EdgeInsets.only(
+        left: 47,
+        top: 20,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Text(
+            'Escribiendo',
+            style: TextStyle(
+                fontSize: 12
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(bottom: 3),
+            child: TreeDotsAnimated(
+              size: 2,
+              color: Colors.black,
+              curve: Curves.easeInOut,
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
   Widget _inputMessage(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
+      padding: const EdgeInsets.only(
+        left: 25,
+        right: 25,
+        bottom: 20,
+      ),
       width: MediaQuery.of(context).size.width,
       child: Container(
         width: MediaQuery.of(context).size.width * .7,
@@ -90,7 +127,7 @@ class WebsocketChat extends StatelessWidget {
         ),
         child:  Center(
             child: Padding(
-              padding: const EdgeInsets.only(left: 12.0, top: 10, bottom: 10),
+              padding: const EdgeInsets.only(top: 10, bottom: 10),
               child: ConstrainedBox(
                 constraints: const BoxConstraints(
                     maxHeight: 120.0,

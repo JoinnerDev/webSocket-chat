@@ -1,6 +1,7 @@
 library websocket_chat;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:websocket_chat/models/chat_message_model.dart';
 import 'package:websocket_chat/tree_dots_animated.dart';
@@ -23,6 +24,7 @@ class WebsocketChat extends StatelessWidget {
     this.appBarTextColor,
     this.actions,
     this.showHourMessageInUser = false,
+    this.inputLength = 255,
     super.key,
   });
 
@@ -41,6 +43,7 @@ class WebsocketChat extends StatelessWidget {
   final Color? appBarTextColor;
   final List<Widget>? actions;
   final bool? showHourMessageInUser;
+  final int inputLength;
 
   final Function() onTap;
 
@@ -135,6 +138,9 @@ class WebsocketChat extends StatelessWidget {
                 child: TextField(
                   keyboardType: TextInputType.multiline,
                   maxLines: null,
+                  inputFormatters: [
+                    LengthLimitingTextInputFormatter(inputLength),
+                  ],
                   decoration: InputDecoration(
                     border:  OutlineInputBorder(
                      borderSide: const BorderSide(width: 1),

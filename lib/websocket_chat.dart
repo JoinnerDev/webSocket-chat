@@ -16,6 +16,7 @@ class WebsocketChat extends StatelessWidget {
     required this.scrollController,
     required this.msgController,
     required this.onTap,
+    required this.onChanged,
     this.imageAvatar,
     this.textPrimaryColor,
     this.textBotColor,
@@ -46,6 +47,7 @@ class WebsocketChat extends StatelessWidget {
   final int inputLength;
 
   final Function() onTap;
+  final Function(String) onChanged;
 
 
   @override
@@ -136,6 +138,7 @@ class WebsocketChat extends StatelessWidget {
                     maxHeight: 120.0,
                 ),
                 child: TextField(
+                  onChanged: onChanged,
                   keyboardType: TextInputType.multiline,
                   maxLines: null,
                   inputFormatters: [

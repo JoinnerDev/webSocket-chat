@@ -17,6 +17,7 @@ class WebsocketChat extends StatelessWidget {
     required this.msgController,
     required this.onTap,
     required this.onChanged,
+    required this.validator,
     this.imageAvatar,
     this.textPrimaryColor,
     this.textBotColor,
@@ -48,6 +49,7 @@ class WebsocketChat extends StatelessWidget {
 
   final Function() onTap;
   final Function(String) onChanged;
+  final String? Function(String?) validator;
 
 
   @override
@@ -137,8 +139,10 @@ class WebsocketChat extends StatelessWidget {
                 constraints: const BoxConstraints(
                     maxHeight: 120.0,
                 ),
-                child: TextField(
+                child: TextFormField(
+                  validator: validator,
                   onChanged: onChanged,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
                   keyboardType: TextInputType.multiline,
                   maxLines: null,
                   inputFormatters: [

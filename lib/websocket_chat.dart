@@ -11,6 +11,7 @@ class WebsocketChat extends StatelessWidget {
     required this.messages,
     required this.title,
     required this.hintText,
+    required this.botName,
     required this.bubblePrimaryColor,
     required this.bubbleBotColor,
     required this.scrollController,
@@ -33,6 +34,7 @@ class WebsocketChat extends StatelessWidget {
   final List<ChatMessageModel> messages;
   final String title;
   final String hintText;
+  final String botName;
   final Color bubblePrimaryColor;
   final Color bubbleBotColor;
   final ScrollController scrollController;
@@ -218,10 +220,7 @@ class WebsocketChat extends StatelessWidget {
               child: CircleAvatar(
                 radius: 25,
                 backgroundColor: avatarBackGroundColor ?? Colors.black,
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: imageAvatar ?? const SizedBox(),
-                )
+                child: imageAvatar ?? const SizedBox(),
               ),
             )
     
@@ -233,7 +232,7 @@ class WebsocketChat extends StatelessWidget {
                 Container(
                   margin: EdgeInsets.only(top:8, left: user? 0 : 8, right: user? 16 : 0),
                   child: Text(
-                    'Bot',
+                    botName,
                     style: TextStyle(fontSize: 12, color: Colors.grey[400]),
                     textAlign: TextAlign.start,
                   ),

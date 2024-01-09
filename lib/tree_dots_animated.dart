@@ -8,16 +8,16 @@ class TreeDotsAnimated extends StatefulWidget {
   final int count;
 
   const TreeDotsAnimated({
-    Key? key,
+    super.key,
     this.color = Colors.white,
     this.size = 10.0,
     this.duration = const Duration(milliseconds: 1000),
     this.curve = Curves.easeInOut,
     this.count = 3,
-  }) : super(key: key);
+  });
 
   @override
-  _TreeDotsAnimatedState createState() => _TreeDotsAnimatedState();
+  State<TreeDotsAnimated> createState() => _TreeDotsAnimatedState();
 }
 
 class _TreeDotsAnimatedState extends State<TreeDotsAnimated> with SingleTickerProviderStateMixin {

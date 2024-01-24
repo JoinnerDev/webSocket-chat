@@ -19,6 +19,8 @@ class WebsocketChat extends StatelessWidget {
     required this.onTap,
     required this.onChanged,
     required this.validator,
+    required this.expiredTimeOut,
+    required this.childTimeOut,
     this.imageAvatar,
     this.textPrimaryColor,
     this.textBotColor,
@@ -48,6 +50,8 @@ class WebsocketChat extends StatelessWidget {
   final List<Widget>? actions;
   final bool? showHourMessageInUser;
   final int inputLength;
+  final bool expiredTimeOut;
+  final Widget childTimeOut;
 
   final Function() onTap;
   final Function(String) onChanged;
@@ -83,7 +87,7 @@ class WebsocketChat extends StatelessWidget {
             children: [
               _chat(context),
               if (messages.isNotEmpty && messages.last.isMe) ...[
-                _botWriting(),
+                expiredTimeOut? childTimeOut : _botWriting(),
               ],
               _inputMessage(context)
             ],
@@ -299,3 +303,4 @@ class WebsocketChat extends StatelessWidget {
     );
   }
 }
+

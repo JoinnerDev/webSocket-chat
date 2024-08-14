@@ -1,6 +1,7 @@
 library websocket_chat;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:websocket_chat/models/chat_message_model.dart';
@@ -21,6 +22,7 @@ class WebsocketChat extends StatelessWidget {
     required this.validator,
     required this.expiredTimeOut,
     required this.childTimeOut,
+    this.showLeading = false,
     this.imageAvatar,
     this.textPrimaryColor,
     this.textBotColor,
@@ -52,6 +54,7 @@ class WebsocketChat extends StatelessWidget {
   final int inputLength;
   final bool expiredTimeOut;
   final Widget childTimeOut;
+  final bool showLeading;
 
   final Function() onTap;
   final Function(String) onChanged;
@@ -62,12 +65,12 @@ class WebsocketChat extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
+        leading: showLeading ? IconButton(
           onPressed: () {
             Navigator.pop(context);
           },
           icon: const Icon(Icons.chevron_left, color: Colors.white, size: 30,),
-        ),
+        ) : null,
         title: Text(
           title,
           style: TextStyle(
@@ -146,6 +149,7 @@ class WebsocketChat extends StatelessWidget {
                     maxHeight: 120.0,
                 ),
                 child: TextFormField(
+                  enabled: messages.isNotEmpty,
                   validator: validator,
                   onChanged: onChanged,
                   autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -189,10 +193,14 @@ class WebsocketChat extends StatelessWidget {
               child: Padding(
                 padding: EdgeInsets.symmetric(
                     horizontal: MediaQuery.of(context).size.width * .14),
-                child: const Text(
-                  "Aún no tienes una conversación",
-                  style: TextStyle(color: Colors.orange, fontSize: 20),
-                  textAlign: TextAlign.center,
+                child: Container(
+                  width: 80.0,
+                  height: 80.0,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10.0),
+                    color: Colors.white,
+                  ),
+                  child: const CupertinoActivityIndicator(),
                 ),
               ),
             )

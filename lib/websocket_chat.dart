@@ -32,6 +32,7 @@ class WebsocketChat extends StatelessWidget {
     this.actions,
     this.showHourMessageInUser = false,
     this.inputLength = 255,
+    this.textContainerBuilder,
     super.key,
   });
 
@@ -55,6 +56,7 @@ class WebsocketChat extends StatelessWidget {
   final bool expiredTimeOut;
   final Widget childTimeOut;
   final bool showLeading;
+  final Widget Function(String, bool)? textContainerBuilder;
 
   final Function() onTap;
   final Function(String) onChanged;
@@ -279,14 +281,9 @@ class WebsocketChat extends StatelessWidget {
                     crossAxisAlignment:
                     !user ? CrossAxisAlignment.start : CrossAxisAlignment.end,
                     children: [
-                      Text(
-                        message.message,
-                        style: TextStyle(
-                          color: user? textPrimaryColor ??  Colors.white 
-                            : textBotColor?? Colors.black
-                        ),
-                        textAlign: !user ? TextAlign.start : TextAlign.end,
-                      ),
+                      textContainerBuilder != null
+                          ? textContainerBuilder!(message.message, user)
+                          : _defaultTextContainerBuilder(message.message, user),
                       const SizedBox(height: 4,),
                     ],
                     
@@ -308,6 +305,17 @@ class WebsocketChat extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _defaultTextContainerBuilder(String message, bool isUser) {
+    return Text(
+      message,
+      style: TextStyle(
+        color: isUser ? textPrimaryColor ??  Colors.white 
+          : textBotColor ?? Colors.black
+      ),
+      textAlign: !isUser ? TextAlign.start : TextAlign.end,
     );
   }
 }

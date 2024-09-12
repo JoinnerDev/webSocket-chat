@@ -22,6 +22,7 @@ class WebsocketChat extends StatelessWidget {
     required this.validator,
     required this.expiredTimeOut,
     required this.childTimeOut,
+    required this.isWeb,
     this.showLeading = false,
     this.imageAvatar,
     this.textPrimaryColor,
@@ -33,6 +34,9 @@ class WebsocketChat extends StatelessWidget {
     this.showHourMessageInUser = false,
     this.inputLength = 255,
     this.textContainerBuilder,
+    this.likeButton,
+    this.dislikeButton,
+    this.copyButton,
     super.key,
   });
 
@@ -57,6 +61,10 @@ class WebsocketChat extends StatelessWidget {
   final Widget childTimeOut;
   final bool showLeading;
   final Widget Function(String, bool)? textContainerBuilder;
+  final Function(ChatMessageModel)? likeButton;
+  final Function(ChatMessageModel)? dislikeButton;
+  final Function(ChatMessageModel)? copyButton;
+  final bool isWeb;
 
   final Function() onTap;
   final Function(String) onChanged;
@@ -157,9 +165,11 @@ class WebsocketChat extends StatelessWidget {
                   autovalidateMode: AutovalidateMode.onUserInteraction,
                   keyboardType: TextInputType.multiline,
                   maxLines: null,
+                  textInputAction: isWeb ? TextInputAction.send : null,
                   inputFormatters: [
                     LengthLimitingTextInputFormatter(inputLength),
                   ],
+                  onFieldSubmitted: isWeb ? (_) => onTap() : null,
                   decoration: InputDecoration(
                     border:  OutlineInputBorder(
                      borderSide: const BorderSide(width: 1),
@@ -171,13 +181,12 @@ class WebsocketChat extends StatelessWidget {
                      borderRadius: BorderRadius.circular(30)
                     ),
                     suffixIcon: InkWell(
-                onTap: onTap,
-                child: Icon(Icons.send, color: bubblePrimaryColor)
-                        ),
-                      hintText: hintText),
+                      onTap: onTap,
+                      child: Icon(Icons.send, color: bubblePrimaryColor),
+                    ),
+                      hintText: hintText,
+                  ),
                   controller: msgController,
-                  
-                  
                 ),
               ),
             )),
@@ -291,18 +300,61 @@ class WebsocketChat extends StatelessWidget {
     
                 ),
               ),
-              if(showHourMessageInUser! || !user)...[
-                Container(
-                  margin: EdgeInsets.only(top:8, left: user? 0 : 8, right: user? 16 : 0),
-                  child: Text(
-                    DateFormat('h:mm', 'es').format(message.date),
-                    style: TextStyle(fontSize: 12, color: Colors.grey[400]),
-                    textAlign: TextAlign.start,
-                  ),
-                ),
-              ]
+            
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  if(showHourMessageInUser! || !user)...[
+                    Container(
+                      margin: EdgeInsets.only(top: index==0 || (likeButton==null && dislikeButton==null) ? 8 : 0 ,left: user? 0 : 8, right: user? 16 : 10),
+                      child: Text(
+                        DateFormat('h:mm', 'es').format(message.date),
+                        style: TextStyle(fontSize: 13, color: Colors.grey[500]),
+                        textAlign: TextAlign.start,
+                      ),
+                    ),
+                  ],
+                  if(!user && index != 0 && likeButton != null)...[
+                    IconButton(
+                      onPressed: () => likeButton!(message),
+                      iconSize: 21,
+                      icon: Icon(
+                        message.isLiked ? Icons.thumb_up :
+                        Icons.thumb_up_alt_outlined
+                      ),
+                      color: message.isLiked  ? Colors.grey[700] : Colors.grey[500],
+                      padding: EdgeInsets.zero,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    
+                  ],
+                  if(!user && index != 0 && dislikeButton != null)...[
+                    IconButton(
+                      onPressed: () => dislikeButton!(message),
+                      iconSize: 21,
+                      icon: Icon(
+                        message.isDisliked ? Icons.thumb_down :
+                        Icons.thumb_down_alt_outlined
+                      ),
+                      color: message.isDisliked  ? Colors.grey[700] : Colors.grey[500],
+                      padding: EdgeInsets.zero,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ],
+                ],
+              ),
             ],
           ),
+          if(!user && index != 0 && copyButton != null) ...[
+            IconButton(
+              onPressed: () => copyButton!(message),
+              iconSize: 22,
+              icon: const Icon(Icons.copy_all_outlined),
+              color: Colors.grey[600],
+              padding: EdgeInsets.zero,
+              visualDensity: VisualDensity.compact,
+            ),
+          ],
         ],
       ),
     );

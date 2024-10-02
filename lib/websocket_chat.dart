@@ -1,6 +1,7 @@
 library websocket_chat;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:websocket_chat/models/chat_message_model.dart';
@@ -21,6 +22,8 @@ class WebsocketChat extends StatelessWidget {
     required this.validator,
     required this.expiredTimeOut,
     required this.childTimeOut,
+    required this.isWeb,
+    this.showLeading = false,
     this.imageAvatar,
     this.textPrimaryColor,
     this.textBotColor,
@@ -30,6 +33,10 @@ class WebsocketChat extends StatelessWidget {
     this.actions,
     this.showHourMessageInUser = false,
     this.inputLength = 255,
+    this.textContainerBuilder,
+    this.likeButton,
+    this.dislikeButton,
+    this.copyButton,
     super.key,
   });
 
@@ -52,6 +59,12 @@ class WebsocketChat extends StatelessWidget {
   final int inputLength;
   final bool expiredTimeOut;
   final Widget childTimeOut;
+  final bool showLeading;
+  final Widget Function(String, bool)? textContainerBuilder;
+  final Function(ChatMessageModel)? likeButton;
+  final Function(ChatMessageModel)? dislikeButton;
+  final Function(ChatMessageModel)? copyButton;
+  final bool isWeb;
 
   final Function() onTap;
   final Function(String) onChanged;
@@ -62,12 +75,12 @@ class WebsocketChat extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
+        leading: showLeading ? IconButton(
           onPressed: () {
             Navigator.pop(context);
           },
           icon: const Icon(Icons.chevron_left, color: Colors.white, size: 30,),
-        ),
+        ) : null,
         title: Text(
           title,
           style: TextStyle(
@@ -78,6 +91,7 @@ class WebsocketChat extends StatelessWidget {
         backgroundColor: appBarColor ?? Colors.black,
         elevation: 1,
       ),
+      backgroundColor: Colors.white,
       body: SizedBox(
           height: MediaQuery.of(context).size.height*.9,
           width: MediaQuery.of(context).size.width,
@@ -126,6 +140,7 @@ class WebsocketChat extends StatelessWidget {
 
   Widget _inputMessage(BuildContext context) {
     return Container(
+      color: Colors.white,
       padding: const EdgeInsets.only(
         left: 25,
         right: 25,
@@ -146,14 +161,17 @@ class WebsocketChat extends StatelessWidget {
                     maxHeight: 120.0,
                 ),
                 child: TextFormField(
+                  enabled: messages.isNotEmpty,
                   validator: validator,
                   onChanged: onChanged,
                   autovalidateMode: AutovalidateMode.onUserInteraction,
                   keyboardType: TextInputType.multiline,
                   maxLines: null,
+                  textInputAction: isWeb ? TextInputAction.send : null,
                   inputFormatters: [
                     LengthLimitingTextInputFormatter(inputLength),
                   ],
+                  onFieldSubmitted: isWeb ? (_) => onTap() : null,
                   decoration: InputDecoration(
                     border:  OutlineInputBorder(
                      borderSide: const BorderSide(width: 1),
@@ -165,13 +183,12 @@ class WebsocketChat extends StatelessWidget {
                      borderRadius: BorderRadius.circular(30)
                     ),
                     suffixIcon: InkWell(
-                onTap: onTap,
-                child: Icon(Icons.send, color: bubblePrimaryColor)
-                        ),
-                      hintText: hintText),
+                      onTap: onTap,
+                      child: Icon(Icons.send, color: bubblePrimaryColor),
+                    ),
+                      hintText: hintText,
+                  ),
                   controller: msgController,
-                  
-                  
                 ),
               ),
             )),
@@ -189,10 +206,14 @@ class WebsocketChat extends StatelessWidget {
               child: Padding(
                 padding: EdgeInsets.symmetric(
                     horizontal: MediaQuery.of(context).size.width * .14),
-                child: const Text(
-                  "Aún no tienes una conversación",
-                  style: TextStyle(color: Colors.orange, fontSize: 20),
-                  textAlign: TextAlign.center,
+                child: Container(
+                  width: 80.0,
+                  height: 80.0,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10.0),
+                    color: Colors.white,
+                  ),
+                  child: const CupertinoActivityIndicator(),
                 ),
               ),
             )
@@ -271,14 +292,9 @@ class WebsocketChat extends StatelessWidget {
                     crossAxisAlignment:
                     !user ? CrossAxisAlignment.start : CrossAxisAlignment.end,
                     children: [
-                      Text(
-                        message.message,
-                        style: TextStyle(
-                          color: user? textPrimaryColor ??  Colors.white 
-                            : textBotColor?? Colors.black
-                        ),
-                        textAlign: !user ? TextAlign.start : TextAlign.end,
-                      ),
+                      textContainerBuilder != null
+                          ? textContainerBuilder!(message.message, user)
+                          : _defaultTextContainerBuilder(message.message, user),
                       const SizedBox(height: 4,),
                     ],
                     
@@ -286,20 +302,74 @@ class WebsocketChat extends StatelessWidget {
     
                 ),
               ),
-              if(showHourMessageInUser! || !user)...[
-                Container(
-                  margin: EdgeInsets.only(top:8, left: user? 0 : 8, right: user? 16 : 0),
-                  child: Text(
-                    DateFormat('h:mm', 'es').format(message.date),
-                    style: TextStyle(fontSize: 12, color: Colors.grey[400]),
-                    textAlign: TextAlign.start,
-                  ),
-                ),
-              ]
+            
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  if(showHourMessageInUser! || !user)...[
+                    Container(
+                      margin: EdgeInsets.only(top: index==0 || (likeButton==null && dislikeButton==null) ? 8 : 0 ,left: user? 0 : 8, right: user? 16 : 10),
+                      child: Text(
+                        DateFormat('h:mm', 'es').format(message.date),
+                        style: TextStyle(fontSize: 13, color: Colors.grey[500]),
+                        textAlign: TextAlign.start,
+                      ),
+                    ),
+                  ],
+                  if(!user && index != 0 && likeButton != null)...[
+                    IconButton(
+                      onPressed: () => likeButton!(message),
+                      iconSize: 21,
+                      icon: Icon(
+                        message.isLiked ? Icons.thumb_up :
+                        Icons.thumb_up_alt_outlined
+                      ),
+                      color: message.isLiked  ? Colors.grey[700] : Colors.grey[500],
+                      padding: EdgeInsets.zero,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    
+                  ],
+                  if(!user && index != 0 && dislikeButton != null)...[
+                    IconButton(
+                      onPressed: () => dislikeButton!(message),
+                      iconSize: 21,
+                      icon: Icon(
+                        message.isDisliked ? Icons.thumb_down :
+                        Icons.thumb_down_alt_outlined
+                      ),
+                      color: message.isDisliked  ? Colors.grey[700] : Colors.grey[500],
+                      padding: EdgeInsets.zero,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ],
+                ],
+              ),
             ],
           ),
+          if(!user && index != 0 && copyButton != null) ...[
+            IconButton(
+              onPressed: () => copyButton!(message),
+              iconSize: 22,
+              icon: const Icon(Icons.copy_all_outlined),
+              color: Colors.grey[600],
+              padding: EdgeInsets.zero,
+              visualDensity: VisualDensity.compact,
+            ),
+          ],
         ],
       ),
+    );
+  }
+
+  Widget _defaultTextContainerBuilder(String message, bool isUser) {
+    return Text(
+      message,
+      style: TextStyle(
+        color: isUser ? textPrimaryColor ??  Colors.white 
+          : textBotColor ?? Colors.black
+      ),
+      textAlign: !isUser ? TextAlign.start : TextAlign.end,
     );
   }
 }

@@ -91,6 +91,7 @@ class WebsocketChat extends StatelessWidget {
         backgroundColor: appBarColor ?? Colors.black,
         elevation: 1,
       ),
+      backgroundColor: Colors.white,
       body: SizedBox(
           height: MediaQuery.of(context).size.height*.9,
           width: MediaQuery.of(context).size.width,
@@ -139,6 +140,7 @@ class WebsocketChat extends StatelessWidget {
 
   Widget _inputMessage(BuildContext context) {
     return Container(
+      color: Colors.white,
       padding: const EdgeInsets.only(
         left: 25,
         right: 25,

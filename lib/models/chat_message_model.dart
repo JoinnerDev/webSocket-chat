@@ -4,8 +4,6 @@ class ChatMessageModel {
   final bool isMe;
   bool isLiked;
   bool isDisliked;
-  int interactionCount = 0;
-  DateTime lastInteraction = DateTime.now();
 
   ChatMessageModel({
     required this.message,

@@ -37,6 +37,7 @@ class WebsocketChat extends StatelessWidget {
     this.likeButton,
     this.dislikeButton,
     this.copyButton,
+    this.widgets,
     super.key,
   });
 
@@ -65,6 +66,7 @@ class WebsocketChat extends StatelessWidget {
   final Function(ChatMessageModel)? dislikeButton;
   final Function(ChatMessageModel)? copyButton;
   final bool isWeb;
+  final Map<String, Widget Function(ChatMessageModel)>? widgets;
 
   final Function() onTap;
   final Function(String) onChanged;
@@ -224,6 +226,9 @@ class WebsocketChat extends StatelessWidget {
               itemCount: messages.length, //docs.length,
               itemBuilder: (BuildContext context, int index) {
                 //bool showDate = false;
+                if (messages[index].messageType == 4) {
+                  return widgets?['guia']?.call(messages[index]) ?? const SizedBox();
+                }
                 return itemMessage(messages[index], index, context);
               },
             )

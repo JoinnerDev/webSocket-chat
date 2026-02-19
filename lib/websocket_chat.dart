@@ -105,7 +105,17 @@ class WebsocketChat extends StatelessWidget {
               if (messages.isNotEmpty && messages.last.isMe) ...[
                 expiredTimeOut? childTimeOut : _botWriting(),
               ],
-              _inputMessage(context)
+              _InputMessageWidget(
+                messages: messages,
+                validator: validator,
+                onChanged: onChanged,
+                isWeb: isWeb,
+                inputLength: inputLength,
+                onTap: onTap,
+                hintText: hintText,
+                msgController: msgController,
+                bubblePrimaryColor: bubblePrimaryColor,
+              )
             ],
           )
       ),
@@ -140,63 +150,7 @@ class WebsocketChat extends StatelessWidget {
     );
   }
 
-  Widget _inputMessage(BuildContext context) {
-    return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.only(
-        left: 25,
-        right: 25,
-        bottom: 20,
-      ),
-      width: MediaQuery.of(context).size.width,
-      child: Container(
-        width: MediaQuery.of(context).size.width * .7,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(15),
-          color: Colors.white,
-        ),
-        child:  Center(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 10, bottom: 10),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                    maxHeight: 120.0,
-                ),
-                child: TextFormField(
-                  enabled: messages.isNotEmpty,
-                  validator: validator,
-                  onChanged: onChanged,
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  keyboardType: TextInputType.multiline,
-                  maxLines: null,
-                  textInputAction: isWeb ? TextInputAction.send : null,
-                  inputFormatters: [
-                    LengthLimitingTextInputFormatter(inputLength),
-                  ],
-                  onFieldSubmitted: isWeb ? (_) => onTap() : null,
-                  decoration: InputDecoration(
-                    border:  OutlineInputBorder(
-                     borderSide: const BorderSide(width: 1),
-                     borderRadius: BorderRadius.circular(30)
-                    ),
-              
-                    focusedBorder:  OutlineInputBorder(
-                     borderSide: const BorderSide(width: 1),
-                     borderRadius: BorderRadius.circular(30)
-                    ),
-                    suffixIcon: InkWell(
-                      onTap: onTap,
-                      child: Icon(Icons.send, color: bubblePrimaryColor),
-                    ),
-                      hintText: hintText,
-                  ),
-                  controller: msgController,
-                ),
-              ),
-            )),
-      ),
-    );
-  }
+
 
   Widget _chat(BuildContext context) {
     return Expanded(
@@ -375,6 +329,119 @@ class WebsocketChat extends StatelessWidget {
           : textBotColor ?? Colors.black
       ),
       textAlign: !isUser ? TextAlign.start : TextAlign.end,
+    );
+  }
+}
+
+class _InputMessageWidget extends StatefulWidget {
+  const _InputMessageWidget({
+    required this.messages,
+    required this.validator,
+    required this.onChanged,
+    required this.isWeb,
+    required this.inputLength,
+    required this.onTap,
+    required this.hintText,
+    required this.msgController,
+    required this.bubblePrimaryColor,
+  });
+
+  final List<ChatMessageModel> messages;
+  final String? Function(String?) validator;
+  final Function(String) onChanged;
+  final bool isWeb;
+  final int inputLength;
+  final Function() onTap;
+  final String hintText;
+  final TextEditingController msgController;
+  final Color bubblePrimaryColor;
+
+  @override
+  State<_InputMessageWidget> createState() => _InputMessageWidgetState();
+}
+
+class _InputMessageWidgetState extends State<_InputMessageWidget> {
+  bool _isSending = false;
+
+  void _handleTap() {
+    if (_isSending || widget.msgController.text.trim().isEmpty) return;
+
+    setState(() {
+      _isSending = true;
+    });
+
+    // Invoke the parent onTap logic
+    widget.onTap();
+    
+    // Disable button for a short time to prevent double taps
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        setState(() {
+          _isSending = false;
+        });
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.only(
+        left: 25,
+        right: 25,
+        bottom: 20,
+      ),
+      width: MediaQuery.of(context).size.width,
+      child: Container(
+        width: MediaQuery.of(context).size.width * .7,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15),
+          color: Colors.white,
+        ),
+        child: Center(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 10, bottom: 10),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                    maxHeight: 120.0,
+                ),
+                child: TextFormField(
+                  enabled: widget.messages.isNotEmpty,
+                  validator: widget.validator,
+                  onChanged: widget.onChanged,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  keyboardType: TextInputType.multiline,
+                  maxLines: null,
+                  textInputAction: widget.isWeb ? TextInputAction.send : null,
+                  inputFormatters: [
+                    LengthLimitingTextInputFormatter(widget.inputLength),
+                  ],
+                  onFieldSubmitted: widget.isWeb ? (_) => _handleTap() : null,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                     borderSide: const BorderSide(width: 1),
+                     borderRadius: BorderRadius.circular(30)
+                    ),
+              
+                    focusedBorder: OutlineInputBorder(
+                     borderSide: const BorderSide(width: 1),
+                     borderRadius: BorderRadius.circular(30)
+                    ),
+                    suffixIcon: InkWell(
+                      onTap: _isSending ? null : _handleTap,
+                      child: Icon(
+                        Icons.send,
+                        color: _isSending ? Colors.grey : widget.bubblePrimaryColor,
+                      ),
+                    ),
+                      hintText: widget.hintText,
+                  ),
+                  controller: widget.msgController,
+                ),
+              ),
+            )),
+      ),
     );
   }
 }

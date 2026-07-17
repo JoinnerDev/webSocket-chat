@@ -1,5 +1,7 @@
 library websocket_chat;
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
@@ -38,6 +40,7 @@ class WebsocketChat extends StatelessWidget {
     this.dislikeButton,
     this.copyButton,
     this.widgets,
+    this.showPendingBotResponse = false,
     super.key,
   });
 
@@ -67,6 +70,7 @@ class WebsocketChat extends StatelessWidget {
   final Function(ChatMessageModel)? copyButton;
   final bool isWeb;
   final Map<String, Widget Function(ChatMessageModel)>? widgets;
+  final bool showPendingBotResponse;
 
   final Function() onTap;
   final Function(String) onChanged;
@@ -102,7 +106,8 @@ class WebsocketChat extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _chat(context),
-              if (messages.isNotEmpty && messages.last.isMe) ...[
+              if ((messages.isNotEmpty && messages.last.isMe) ||
+                  showPendingBotResponse) ...[
                 expiredTimeOut? childTimeOut : _botWriting(),
               ],
               _InputMessageWidget(
@@ -150,6 +155,26 @@ class WebsocketChat extends StatelessWidget {
     );
   }
 
+  String? _resolveWidgetTag(ChatMessageModel message) {
+    try {
+      final dynamic payload = message.message;
+      if (payload is Map && payload.isNotEmpty) {
+        final dynamic widgetTag = payload.keys.first;
+        if (widgetTag is String && widgetTag.isNotEmpty) {
+          return widgetTag;
+        }
+      }
+    } on FormatException {
+      final RegExpMatch? match = RegExp(
+        "^\\s*\\{\\s*['\"]([^'\"]+)['\"]\\s*:",
+      ).firstMatch(message.message);
+
+      return match?.group(1);
+    }
+
+    return null;
+  }
+
 
 
   Widget _chat(BuildContext context) {
@@ -179,11 +204,18 @@ class WebsocketChat extends StatelessWidget {
               shrinkWrap: true,
               itemCount: messages.length, //docs.length,
               itemBuilder: (BuildContext context, int index) {
+                final ChatMessageModel chatMessage = messages[index];
                 //bool showDate = false;
-                if (messages[index].messageType == 4) {
-                  return widgets?['guia']?.call(messages[index]) ?? const SizedBox();
+                if (chatMessage.messageType == 4) {
+                  final String? widgetTag = _resolveWidgetTag(chatMessage);
+                  final Widget Function(ChatMessageModel)? widgetBuilder =
+                      widgetTag != null && widgets != null
+                          ? widgets![widgetTag]
+                          : null;
+
+                  return widgetBuilder?.call(chatMessage) ?? const SizedBox();
                 }
-                return itemMessage(messages[index], index, context);
+                return itemMessage(chatMessage, index, context);
               },
             )
         )

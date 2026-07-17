@@ -1,5 +1,5 @@
 class ChatMessageModel {
-  final String message;
+  final dynamic message;
   final DateTime date;
   final bool isMe;
   bool isLiked;
